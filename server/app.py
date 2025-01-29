@@ -1,10 +1,8 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, make_response
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
-from flask_migrate import Migrate
-from models import db, Profile, Phone, Feature, PhoneFeature
 
-# Initialize Flask app
+# Initialize Flask App
 app = Flask(__name__)
 
 # Configuration
@@ -12,102 +10,160 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///phone_management.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = 'your-secret-key'
 
-# Initialize extensions
-db.init_app(app)
-migrate = Migrate(app, db)
+# Initialize Extensions
+db = SQLAlchemy(app)
 CORS(app)
 
+# Define Models
+class Profile(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    email = db.Column(db.String(100), unique=True, nullable=False)
+
+class Phone(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    brand = db.Column(db.String(100), nullable=False)
+    model = db.Column(db.String(100), nullable=False)
+    profile_id = db.Column(db.Integer, db.ForeignKey('profile.id'), nullable=False)
+
+class Feature(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    description = db.Column(db.String(255))
+
+# Create Database Tables
+with app.app_context():
+    db.create_all()
+
 # Routes
+
+# Profile CRUD
 @app.route('/profiles', methods=['POST'])
 def create_profile():
     data = request.get_json()
     name = data.get('name')
     email = data.get('email')
+
+    if not name or not email:
+        return make_response(jsonify({"error": "Name and email are required"}), 400)
+
     new_profile = Profile(name=name, email=email)
     db.session.add(new_profile)
     db.session.commit()
     return jsonify({'id': new_profile.id, 'name': new_profile.name, 'email': new_profile.email}), 201
-
 
 @app.route('/profiles', methods=['GET'])
 def get_profiles():
     profiles = Profile.query.all()
     return jsonify([{'id': p.id, 'name': p.name, 'email': p.email} for p in profiles])
 
+@app.route('/profiles/<int:profile_id>', methods=['PATCH'])
+def update_profile(profile_id):
+    profile = Profile.query.get(profile_id)
+    if not profile:
+        return make_response(jsonify({"error": "Profile not found"}), 404)
 
+    data = request.get_json()
+    profile.name = data.get('name', profile.name)
+    profile.email = data.get('email', profile.email)
+    db.session.commit()
+    return jsonify({'id': profile.id, 'name': profile.name, 'email': profile.email}), 200
+
+@app.route('/profiles/<int:profile_id>', methods=['DELETE'])
+def delete_profile(profile_id):
+    profile = Profile.query.get(profile_id)
+    if not profile:
+        return make_response(jsonify({"error": "Profile not found"}), 404)
+
+    db.session.delete(profile)
+    db.session.commit()
+    return jsonify({"message": "Profile deleted successfully"}), 200
+
+# Phone CRUD
 @app.route('/phones', methods=['POST'])
 def create_phone():
     data = request.get_json()
     brand = data.get('brand')
     model = data.get('model')
     profile_id = data.get('profile_id')
+
+    if not brand or not model or not profile_id:
+        return make_response(jsonify({"error": "Brand, model, and profile_id are required"}), 400)
+
     new_phone = Phone(brand=brand, model=model, profile_id=profile_id)
     db.session.add(new_phone)
     db.session.commit()
     return jsonify({'id': new_phone.id, 'brand': new_phone.brand, 'model': new_phone.model, 'profile_id': new_phone.profile_id}), 201
 
-
 @app.route('/phones', methods=['GET'])
 def get_phones():
     phones = Phone.query.all()
-    return jsonify([{
-        'id': phone.id,
-        'brand': phone.brand,
-        'model': phone.model,
-        'profile_id': phone.profile_id
-    } for phone in phones])
+    return jsonify([{'id': phone.id, 'brand': phone.brand, 'model': phone.model, 'profile_id': phone.profile_id} for phone in phones])
 
+@app.route('/phones/<int:phone_id>', methods=['PATCH'])
+def update_phone(phone_id):
+    phone = Phone.query.get(phone_id)
+    if not phone:
+        return make_response(jsonify({"error": "Phone not found"}), 404)
 
+    data = request.get_json()
+    phone.brand = data.get('brand', phone.brand)
+    phone.model = data.get('model', phone.model)
+    db.session.commit()
+    return jsonify({'id': phone.id, 'brand': phone.brand, 'model': phone.model, 'profile_id': phone.profile_id}), 200
+
+@app.route('/phones/<int:phone_id>', methods=['DELETE'])
+def delete_phone(phone_id):
+    phone = Phone.query.get(phone_id)
+    if not phone:
+        return make_response(jsonify({"error": "Phone not found"}), 404)
+
+    db.session.delete(phone)
+    db.session.commit()
+    return jsonify({"message": "Phone deleted successfully"}), 200
+
+# Feature CRUD
 @app.route('/features', methods=['POST'])
 def create_feature():
     data = request.get_json()
     name = data.get('name')
     description = data.get('description', '')
+
+    if not name:
+        return make_response(jsonify({"error": "Name is required"}), 400)
+
     new_feature = Feature(name=name, description=description)
     db.session.add(new_feature)
     db.session.commit()
     return jsonify({'id': new_feature.id, 'name': new_feature.name, 'description': new_feature.description}), 201
 
-
 @app.route('/features', methods=['GET'])
 def get_features():
     features = Feature.query.all()
-    return jsonify([{
-        'id': feature.id,
-        'name': feature.name,
-        'description': feature.description
-    } for feature in features])
+    return jsonify([{'id': feature.id, 'name': feature.name, 'description': feature.description} for feature in features])
 
+@app.route('/features/<int:feature_id>', methods=['PATCH'])
+def update_feature(feature_id):
+    feature = Feature.query.get(feature_id)
+    if not feature:
+        return make_response(jsonify({"error": "Feature not found"}), 404)
 
-@app.route('/phone_features', methods=['POST'])
-def create_phone_feature():
     data = request.get_json()
-    phone_id = data.get('phone_id')
-    feature_id = data.get('feature_id')
-    rating = data.get('rating')
-    new_phone_feature = PhoneFeature(phone_id=phone_id, feature_id=feature_id, rating=rating)
-    db.session.add(new_phone_feature)
+    feature.name = data.get('name', feature.name)
+    feature.description = data.get('description', feature.description)
     db.session.commit()
-    return jsonify({
-        'id': new_phone_feature.id,
-        'phone_id': new_phone_feature.phone_id,
-        'feature_id': new_phone_feature.feature_id,
-        'rating': new_phone_feature.rating
-    }), 201
+    return jsonify({'id': feature.id, 'name': feature.name, 'description': feature.description}), 200
 
+@app.route('/features/<int:feature_id>', methods=['DELETE'])
+def delete_feature(feature_id):
+    feature = Feature.query.get(feature_id)
+    if not feature:
+        return make_response(jsonify({"error": "Feature not found"}), 404)
 
-@app.route('/phone_features', methods=['GET'])
-def get_phone_features():
-    phone_features = PhoneFeature.query.all()
-    return jsonify([{
-        'id': pf.id,
-        'phone_id': pf.phone_id,
-        'feature_id': pf.feature_id,
-        'rating': pf.rating
-    } for pf in phone_features])
+    db.session.delete(feature)
+    db.session.commit()
+    return jsonify({"message": "Feature deleted successfully"}), 200
 
-
+# Run Flask App
 if __name__ == '__main__':
-    with app.app_context():
-        db.create_all()
     app.run(debug=True)
