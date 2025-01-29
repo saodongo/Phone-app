@@ -2,19 +2,18 @@ from flask import Flask, jsonify, request, make_response
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 
-# Initialize Flask App
+
 app = Flask(__name__)
 
-# Configuration
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///phone_management.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = 'your-secret-key'
 
-# Initialize Extensions
+
 db = SQLAlchemy(app)
 CORS(app)
 
-# Define Models
+
 class Profile(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
@@ -31,13 +30,9 @@ class Feature(db.Model):
     name = db.Column(db.String(100), nullable=False)
     description = db.Column(db.String(255))
 
-# Create Database Tables
 with app.app_context():
     db.create_all()
 
-# Routes
-
-# Profile CRUD
 @app.route('/profiles', methods=['POST'])
 def create_profile():
     data = request.get_json()
@@ -52,10 +47,12 @@ def create_profile():
     db.session.commit()
     return jsonify({'id': new_profile.id, 'name': new_profile.name, 'email': new_profile.email}), 201
 
+
 @app.route('/profiles', methods=['GET'])
 def get_profiles():
     profiles = Profile.query.all()
     return jsonify([{'id': p.id, 'name': p.name, 'email': p.email} for p in profiles])
+
 
 @app.route('/profiles/<int:profile_id>', methods=['GET'])
 def get_profile_by_id(profile_id):
@@ -86,7 +83,7 @@ def delete_profile(profile_id):
     db.session.commit()
     return jsonify({"message": "Profile deleted successfully"}), 200
 
-# Phone CRUD
+
 @app.route('/phones', methods=['POST'])
 def create_phone():
     data = request.get_json()
@@ -136,7 +133,7 @@ def delete_phone(phone_id):
     db.session.commit()
     return jsonify({"message": "Phone deleted successfully"}), 200
 
-# Feature CRUD
+
 @app.route('/features', methods=['POST'])
 def create_feature():
     data = request.get_json()
@@ -185,6 +182,6 @@ def delete_feature(feature_id):
     db.session.commit()
     return jsonify({"message": "Feature deleted successfully"}), 200
 
-# Run Flask App
+
 if __name__ == '__main__':
     app.run(debug=True)
