@@ -57,6 +57,13 @@ def get_profiles():
     profiles = Profile.query.all()
     return jsonify([{'id': p.id, 'name': p.name, 'email': p.email} for p in profiles])
 
+@app.route('/profiles/<int:profile_id>', methods=['GET'])
+def get_profile_by_id(profile_id):
+    profile = Profile.query.get(profile_id)
+    if not profile:
+        return make_response(jsonify({"error": "Profile not found"}), 404)
+    return jsonify({'id': profile.id, 'name': profile.name, 'email': profile.email})
+
 @app.route('/profiles/<int:profile_id>', methods=['PATCH'])
 def update_profile(profile_id):
     profile = Profile.query.get(profile_id)
@@ -100,6 +107,13 @@ def get_phones():
     phones = Phone.query.all()
     return jsonify([{'id': phone.id, 'brand': phone.brand, 'model': phone.model, 'profile_id': phone.profile_id} for phone in phones])
 
+@app.route('/phones/<int:phone_id>', methods=['GET'])
+def get_phone_by_id(phone_id):
+    phone = Phone.query.get(phone_id)
+    if not phone:
+        return make_response(jsonify({"error": "Phone not found"}), 404)
+    return jsonify({'id': phone.id, 'brand': phone.brand, 'model': phone.model, 'profile_id': phone.profile_id})
+
 @app.route('/phones/<int:phone_id>', methods=['PATCH'])
 def update_phone(phone_id):
     phone = Phone.query.get(phone_id)
@@ -141,6 +155,13 @@ def create_feature():
 def get_features():
     features = Feature.query.all()
     return jsonify([{'id': feature.id, 'name': feature.name, 'description': feature.description} for feature in features])
+
+@app.route('/features/<int:feature_id>', methods=['GET'])
+def get_feature_by_id(feature_id):
+    feature = Feature.query.get(feature_id)
+    if not feature:
+        return make_response(jsonify({"error": "Feature not found"}), 404)
+    return jsonify({'id': feature.id, 'name': feature.name, 'description': feature.description})
 
 @app.route('/features/<int:feature_id>', methods=['PATCH'])
 def update_feature(feature_id):
