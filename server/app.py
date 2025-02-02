@@ -1,34 +1,20 @@
 from flask import Flask, jsonify, request, make_response
-from flask_sqlalchemy import SQLAlchemy
+# import os
+# from dotenv import load_.env
 from flask_cors import CORS
-
+from flask_migrate import Migrate
+from models import db, Phone, Profile, Feature
 
 app = Flask(__name__)
-
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///phone_management.db'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SECRET_KEY'] = 'your-secret-key'
+app.config['SQLACHEMY_TRACK_MODIFICATIONS'] = False
 
 
-db = SQLAlchemy(app)
-CORS(app)
+
+db.init_app(app)
+Migrate = Migrate (app, db)
 
 
-class Profile(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), nullable=False)
-    email = db.Column(db.String(100), unique=True, nullable=False)
-
-class Phone(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    brand = db.Column(db.String(100), nullable=False)
-    model = db.Column(db.String(100), nullable=False)
-    profile_id = db.Column(db.Integer, db.ForeignKey('profile.id'), nullable=False)
-
-class Feature(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), nullable=False)
-    description = db.Column(db.String(255))
 
 with app.app_context():
     db.create_all()

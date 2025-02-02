@@ -1,21 +1,21 @@
-import { BrowserRouter as Router, Route, Routes, useParams } from 'react-router-dom';
-import Navbar from './components/NavBar';
+import React from 'react';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import Navbar from './components/Navbar';
 import Home from './components/Home';
-import Profiles from './components/Profiles';
-import Phones from './components/About';
-
+import PhoneList from './components/PhoneList';
+import FeaturesList from './components/FeaturesList';
+import Profile from './components/Profile';
 
 function App() {
   return (
     <Router>
-      <div className="pt-[13vh]">
+      <div className="min-h-screen bg-gray-100 pt-[13vh]">
         <Navbar />
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/profiles" element={<Profiles />} />
-          <Route path="/phones" element={<Phones />} />
-          <Route path="/phones/:id" element={<Phones />} />
-         
+          <Route path="/phones" element={<PhoneList />} />
+          <Route path="/features" element={<FeaturesList />} />
+          <Route path="/profile/:id" element={<Profile />} />
         </Routes>
       </div>
     </Router>
