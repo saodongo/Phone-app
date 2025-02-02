@@ -1,12 +1,13 @@
 from flask import Flask, jsonify, request, make_response
-# import os
-# from dotenv import load_.env
+import os
+from dotenv import load_dotenv
 from flask_cors import CORS
 from flask_migrate import Migrate
 from models import db, Phone, Profile, Feature
+load_dotenv()
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///phone_management.db'
+app.config['SQLALCHEMY_DATABASE_URI'] =os.getenv('DATABASE_URI')
 app.config['SQLACHEMY_TRACK_MODIFICATIONS'] = False
 
 
