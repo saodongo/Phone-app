@@ -16,7 +16,7 @@ db.init_app(app)
 Migrate = Migrate (app, db)
 
 
-
+CORS(app)
 with app.app_context():
     db.create_all()
 
