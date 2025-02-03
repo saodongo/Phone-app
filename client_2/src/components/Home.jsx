@@ -60,6 +60,7 @@ function Home() {
       console.error("Error updating phone:", err);
     }
   };
+    // Handle Update (Only Name & Brand)
 
   // Handle New Phone Input
   const handleNewPhoneChange = (e) => {
